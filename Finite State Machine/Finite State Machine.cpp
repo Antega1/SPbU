@@ -17,26 +17,28 @@ private:
 public:
     BracketAutomaton() : currentState(State::VALID) {}
 
+    // Обработка одного символа
     void processChar(char ch) {
-        if (ch == '(' || ch == '[' || ch == '{') {
-            bracketStack.push(ch);
-        } else {
-            if (bracketStack.empty()) {
-                currentState = State::INVALID;
-                return;
-            }
-
-            char top = bracketStack.top();
-            bracketStack.pop();
-
-            if ((ch == ')' && top != '(') ||
-                (ch == ']' && top != '[') ||
-                (ch == '}' && top != '{')) {
-                currentState = State::INVALID;
-            }
+        switch (ch) {
+            // Если символ - открывающая скобка, добавляем её в стек
+            case '(': case '[': case '{':
+                bracketStack.push(ch);
+                break;
+            // Если символ - закрывающая скобка
+            default:
+                // Проверка на пустоту стека и соответствие скобок
+                if (bracketStack.empty() || 
+                    (ch == ')' && bracketStack.top() != '(') ||
+                    (ch == ']' && bracketStack.top() != '[') ||
+                    (ch == '}' && bracketStack.top() != '{')) {
+                    currentState = State::INVALID;
+                    return; // Прекращаем обработку при обнаружении ошибки
+                }
+                bracketStack.pop();
         }
     }
 
+    // Проверка на валидность скобочной последовательности
     bool isValid() const {
         return currentState == State::VALID && bracketStack.empty();
     }
@@ -49,13 +51,12 @@ int main() {
 
     for (char ch : input) {
         automaton.processChar(ch);
+        if (automaton.isValid() == false) {
+            break; // Прекращаем чтение, если последовательность невалидна
+        }
     }
 
-    if (automaton.isValid()) {
-        std::cout << "Valid\n";
-    } else {
-        std::cout << "Invalid\n";
-    }
+    std::cout << (automaton.isValid() ? "Valid\n" : "Invalid\n");
 
     return 0;
 }
